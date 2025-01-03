@@ -19,3 +19,5 @@ export * from "./Tabs";
 export * from "./TextAreaField";
 export * from "./textField";
 export * from "./UploadField"
+
+export { EditMode, useEditMode } from "./editmode/editmodeContext";

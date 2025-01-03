@@ -1,6 +1,7 @@
 import { CollectionSlug } from "payload";
 import { PayloadField, SpecificField } from "./baseField";
 import { Collection } from "./baseTypes";
+import { cloneDeep } from "lodash";
 
 type PayloadRelation<TSlug> = {
     relationTo: TSlug
@@ -19,16 +20,17 @@ class RelationshipField<TSlug extends string, const TObject extends Array<Collec
     }
 
     public required(): PayloadField<PayloadRelation<TSlug>, TObject[number]["_returnType"], "relationship", SpecificField<"relationship">> {
-        this._options.required = true;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.required = true;
+        return elem;
     }
 
     public hydrateFromPayload(value: PayloadRelation<TSlug>): TObject[number]["_returnType"] | undefined {
         const col = this.collectionRecord[value.relationTo];
-        console.log("value in relationship", value)
         return col.hydrate(value.value);
     }
 }
+
 
 export function Relationship<TSlug extends string, const TObject extends Array<Collection<any, TSlug>>>(...rels: TObject) {
     return new RelationshipField(...rels);

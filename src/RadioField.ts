@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash";
 import { BaseDataField, SpecificField } from "./baseField";
 
 class RadioField<const TOpts extends {label: string, value: string}[]> extends BaseDataField<string, TOpts[number]["value"] | undefined, "radio", SpecificField<"radio">> {
@@ -8,8 +9,9 @@ class RadioField<const TOpts extends {label: string, value: string}[]> extends B
     }
 
     withDefaultValue(defaultValue: TOpts[number]["value"]): this {
-        this._options.defaultValue = defaultValue;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.defaultValue = defaultValue;
+        return elem;
     }
 
     withLayout(layout: "horizontal" | "vertical"): this {

@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash";
 import { BaseDataField, SpecificField } from "./baseField";
 
 class SelectField<const TSelect extends {label: string, value: string}[]> extends BaseDataField<string, TSelect[number]["value"] | undefined, "select", SpecificField<"select">> {
@@ -7,8 +8,9 @@ class SelectField<const TSelect extends {label: string, value: string}[]> extend
     }
 
     many(): BaseDataField<string, TSelect[number]["value"][] | undefined, "select", SpecificField<"select">> {
-        this._options.hasMany = true;
-        return this as any as BaseDataField<string, TSelect[number]["value"][] | undefined, "select", SpecificField<"select">>;
+        const elem = cloneDeep(this);
+        elem._options.hasMany = true;
+        return elem as any as BaseDataField<string, TSelect[number]["value"][] | undefined, "select", SpecificField<"select">>;
     }
 }
 

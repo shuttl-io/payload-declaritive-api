@@ -1,6 +1,7 @@
 import { Field, Payload, CollectionConfig as PayloadCollection } from "payload"
 
 export interface IField<TOut, TIn, TType extends Field["type"]> {
+    _fieldName?: string;
     _payloadFieldType: TType
     transform: <T2>(cb: (arg: TOut) => T2) => IField<T2, TOut, TType>
     toPayloadField(validateName?: boolean): Field;

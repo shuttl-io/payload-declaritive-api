@@ -45,7 +45,6 @@ export const SiteMetadataCollection = Collection({
                 return null;
             }
             const announcement = x[0] as BlockType<typeof AnnouncementBlock>
-            console.log(`${isAfter(Date.now(), announcement.dateActive)} && (${!announcement.dateStop || isBefore(announcement.dateStop, Date.now())})`)
             if (isAfter(Date.now(), announcement.dateActive) && (!announcement.dateStop || isBefore(announcement.dateStop, Date.now()))) {
                 return announcement
             }

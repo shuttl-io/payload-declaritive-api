@@ -1,5 +1,6 @@
 import { parseISO } from "date-fns";
 import { BaseDataField, SpecificField } from "./baseField";
+import { cloneDeep } from "lodash";
 
 
 class DateFieldClass extends BaseDataField<string | null, Date | null, "date", SpecificField<"date">> {
@@ -9,13 +10,15 @@ class DateFieldClass extends BaseDataField<string | null, Date | null, "date", S
     }
 
     withDateFormat(format: string): this {
-        this._options.admin!.date!.displayFormat = format;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.admin!.date!.displayFormat = format;
+        return elem;
     }
 
     withPickerApearance(appearance: NonNullable<NonNullable<SpecificField<"date">["admin"]>["date"]>["pickerAppearance"]): this {
-        this._options.admin!.date!.pickerAppearance = appearance
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.admin!.date!.pickerAppearance = appearance
+        return elem;
     }
 
     protected hydrateFromPayload(value: string | null): Date | null {

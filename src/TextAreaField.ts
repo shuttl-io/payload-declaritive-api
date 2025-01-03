@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash";
 import { BaseDataField, SpecificField } from "./baseField";
 
 class TextareaField extends BaseDataField<string, string | undefined, "textarea", SpecificField<"textarea">> {
@@ -6,13 +7,15 @@ class TextareaField extends BaseDataField<string, string | undefined, "textarea"
     }
 
     withMinLength(len: number): this {
-        this._options.minLength = len;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.minLength = len;
+        return elem;
     }
 
     withMaxLength(len: number): this {
-        this._options.maxLength = len;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.maxLength = len;
+        return elem;
     }
 
     withAdminPlaceHolder(placeholder: string): this {

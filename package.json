@@ -10,15 +10,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@payloadcms/richtext-lexical": "^3.7.0",
     "date-fns": "^3.6.0",
+    "lodash": "^4.17.21",
     "payload": "^3.7.0",
     "react": "19.0.0"
   },
   "peerDependencies": {
     "date-fns": "^3.6.0",
-    "payload": "^3.7.0"
+    "payload": "^3.7.0",
+    "@payloadcms/richtext-lexical": "^3.7.0"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.13",
+    "@types/react": "19.0.1",
     "typescript": "^5.7.2"
   }
 }

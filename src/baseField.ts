@@ -1,19 +1,21 @@
 import { Condition, Field } from "payload";
 import { IField } from "./baseTypes";
 import { CSSProperties } from "react";
+import cloneDeep from "lodash/cloneDeep"
 
 
 export class PayloadField<TIn, TOut, TPayloadType extends Field["type"], TOptionsType extends Extract<Field, {type: TPayloadType}>> implements IField<TOut, TIn, TPayloadType> {
     _output!: TOut;
     private _effect?: (arg: TOut) => any;
-    private _fieldName?: string;
+    public _fieldName?: string;
     protected _options: TOptionsType = {} as any as TOptionsType;
     
     constructor(public readonly _payloadFieldType: TPayloadType) {}
 
     transform<TActual>(cb: (arg: TOut) => TActual): IField<TActual, TOut, TPayloadType> {
-        this._effect = cb;
-        return this as any;
+        const elem = cloneDeep(this);
+        elem._effect = cb;
+        return elem as any;
     };
 
     public toPayloadField(validateName?: boolean): TOptionsType {
@@ -40,18 +42,19 @@ export class PayloadField<TIn, TOut, TPayloadType extends Field["type"], TOption
     }
 
     public withName(name: string): PayloadField<TIn, TOut, TPayloadType, TOptionsType> {
-        if (this._fieldName === undefined) {
-            this._fieldName = name;
-        }
-        return this;
+        const newName = cloneDeep(this);
+        newName._fieldName = name;
+        newName.toPayloadField = this.toPayloadField.bind(newName);
+        return newName;
     }
 
     protected setAdminValue<TAdmin extends NonNullable<TOptionsType["admin"]>, TKey extends keyof TAdmin, TValue extends TAdmin[TKey]>(key: TKey, value: TValue): this {
-        this._options.admin = {
+        const elem = cloneDeep(this);
+        elem._options.admin = {
             ...(this._options.admin ?? {}),
             [key]: value,
         }
-        return this;
+        return elem;
     }
 
     public withAdminCondition(condition: Condition): this {
@@ -129,44 +132,52 @@ export class BaseDataField< TIn, TOut, TData extends DataFields, TOptions extend
     }
 
     withLabel(label: string): this {
-        this._options.label = label;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.label = label;
+        return elem;
     }
 
     required(): PayloadField<TIn, NonNullable<TOut>, TData, TOptions> {
-        this._options.required = true;
-        return this as PayloadField<TIn, NonNullable<TOut>, TData, TOptions>;
+        const elem = cloneDeep(this);
+        elem._options.required = true;
+        return elem as PayloadField<TIn, NonNullable<TOut>, TData, TOptions>;
     }
 
     withValidation(validateFn: NonNullable<TOptions["validate"]>): this {
-        this._options.validate = validateFn;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.validate = validateFn;
+        return elem;
     }
 
     withDefaultValue(defaultValue: NonNullable<TOptions["defaultValue"]>): this {
-        this._options.defaultValue = defaultValue;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.defaultValue = defaultValue;
+        return elem;
     }
 
     virtual(): this {
-        this._options.virtual = true;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.virtual = true;
+        return elem;
     }
 
 
     index(): this {
-        this._options.index = true;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.index = true;
+        return elem;
     }
 
     hidden(): this {
-        this._options.hidden = true;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.hidden = true;
+        return elem;
     }
 
     withAccess(access: NonNullable<TOptions["access"]>): this {
-        this._options.access = access;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.access = access;
+        return elem;
     }
 }
 type Constructor<T> = new (...args: any[]) => T;
@@ -193,9 +204,7 @@ export function RowsMixin<TPartial extends { minRows?: number, maxRows?: number}
 }
 
 export function recordToList<const TValue extends Record<string, IField<any, any, any>>>(record: TValue) {
-    console.log(`Setting all names!`)
     const fields = Object.entries(record).map(([key, value]) => {
-        console.log(`Setting name for: ${key} ${value._payloadFieldType}`)
         return value.withName(key)
     });
     return fields;

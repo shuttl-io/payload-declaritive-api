@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash";
 import { BaseDataField, SpecificField } from "./baseField";
 
 export class TextField extends BaseDataField<string, string | undefined, "text", SpecificField<"text">> {
@@ -7,28 +8,33 @@ export class TextField extends BaseDataField<string, string | undefined, "text",
     }
 
     withMinLength(len: number): this {
-        this._options.minLength = len;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.minLength = len;
+        return elem;
     }
 
     withMaxLength(len: number): this {
-        this._options.maxLength = len;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.maxLength = len;
+        return elem;
     }
 
     many(): this {
-        this._options.hasMany = true;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.hasMany = true;
+        return elem;
     }
 
     withMinRows(len: number): this {
-        this._options.minRows = len;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.minRows = len;
+        return elem;
     }
 
     withMaxRows(len: number): this {
-        this._options.maxRows = len;
-        return this;
+        const elem = cloneDeep(this);
+        elem._options.maxRows = len;
+        return elem;
     }
 
     withAdminPlaceHolder(placeholder: string): this {
