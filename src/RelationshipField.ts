@@ -8,6 +8,8 @@ type PayloadRelation<TSlug> = {
     value: any;
 }
 
+// comment
+
 class RelationshipField<TSlug extends string, const TObject extends Array<Collection<any, TSlug>>> extends PayloadField<PayloadRelation<TSlug>, TObject[number]["_returnType"] | undefined, "relationship", SpecificField<"relationship">> {
     private collectionRecord: Record<TSlug, TObject[number]>;
     constructor(...relation: TObject) {
