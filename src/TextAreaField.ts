@@ -25,6 +25,10 @@ class TextareaField extends BaseDataField<string, string | undefined, "textarea"
     withAdminRows(rows: number): this {
         return this.setAdminValue("rows", rows);
     }
+
+    protected hydrateFromPayload(value: string): string | undefined {
+        return value;
+    }
 }
 
 export function Textarea() {

@@ -22,7 +22,6 @@ class ArrayField<TGroup extends Record<string, IField<any, any, any>>> extends B
     }
 
     protected hydrateFromPayload(value: RecordToObject<TGroup>[]): RecordToObject<TGroup>[] {
-        console.log("Value in array:", value)
         const data = value.map(v => {
             return Object.entries(this.fields).reduce((acc, [name, field]) => {
                 if (field._payloadFieldType === "row") {

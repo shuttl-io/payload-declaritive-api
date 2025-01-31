@@ -1,4 +1,4 @@
-import { Field, Payload, CollectionConfig as PayloadCollection } from "payload"
+import { Field, Payload, CollectionConfig as PayloadCollection, Where, WhereField } from "payload"
 
 export interface IField<TOut, TIn, TType extends Field["type"]> {
     _fieldName?: string;
@@ -18,13 +18,22 @@ type IFieldRecordToObject<TCollectionFields> = {
     [key in keyof TCollectionFields]: extractOut<TCollectionFields[key]>
 }
 
+export type WhereCollection<TCollectionFields> = {
+    [key in keyof TCollectionFields]?: Where[] | WhereField;
+} & {
+    and?: WhereCollection<TCollectionFields>[];
+    or?: WhereCollection<TCollectionFields>[];
+}
+
 export interface Collection<TReturn, TSlug extends string> {
-    _returnType: TReturn
+    _returnType: TReturn & {__type: TSlug }
     get: (id: string) => Promise<TReturn | null>
     slug: TSlug;
     toPayloadCollection():  PayloadCollection;
     bindPayload(prom: Promise<Payload>): void;
     hydrate(v: any): TReturn;
+    search(query: WhereCollection<TReturn>, options: {limit: 1, sort?: string, page?: number}): Promise<TReturn | null>;
+    search(query: WhereCollection<TReturn>, options?: {limit?: number, sort?: string, page?: number}): Promise<TReturn[]>;
 }
 
 type ExcludedTypes<TValue, TReject> = {

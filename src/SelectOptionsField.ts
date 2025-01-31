@@ -12,6 +12,10 @@ class SelectField<const TSelect extends {label: string, value: string}[]> extend
         elem._options.hasMany = true;
         return elem as any as BaseDataField<string, TSelect[number]["value"][] | undefined, "select", SpecificField<"select">>;
     }
+    
+    protected hydrateFromPayload(value: string): TSelect[number]["value"] | undefined {
+        return value
+    }
 }
 
 export function Select<const TSelect extends {label: string, value: string}[]>(opts: TSelect) {

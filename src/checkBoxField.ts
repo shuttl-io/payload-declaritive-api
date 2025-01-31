@@ -4,6 +4,10 @@ export class CheckboxField extends BaseDataField<unknown, boolean | undefined, "
     constructor() {
         super("checkbox")
     }
+
+    hydrateFromPayload(payload: unknown): boolean | undefined {
+        return payload as boolean;
+    }
     
 
 }
