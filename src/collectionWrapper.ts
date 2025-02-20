@@ -4,24 +4,32 @@ import { recordToList } from './baseField';
 import { parseISO } from 'date-fns';
 
 
-type CollectionOptions<TSlug extends string, TCollectionFields extends Record<string, IField<any, any, any>>> = Omit<CollectionConfig, "slug" | "fields"> & {
+type CollectionOptions<TSlug extends string, TCollectionFields extends Record<string, IField<any, any, any>> > = Omit<CollectionConfig, "slug" | "fields"> & {
     name: TSlug
     fields: TCollectionFields,
-
 }
 
 export type CollectionType<TType extends Collection2<any, any>> = TType extends Collection2<infer TCollectType, infer TSlug> ? TCollectType : never
 
-export const Collection = <TSlug extends string, TCollectionFields extends Record<string, IField<any, any, any>>, TCollectType extends RecordToObject<TCollectionFields> & {
+export function Collection<TSlug extends string, TCollectionFields extends Record<string, IField<any, any, any>>, TCollectType extends RecordToObject<TCollectionFields> & {
     createdAt: Date,
     updatedAt: Date,
-}>(opts: CollectionOptions<TSlug, TCollectionFields>): Collection2<TCollectType, TSlug> => {
+}>(opts: CollectionOptions<TSlug, TCollectionFields>): Collection2<TCollectType, TSlug>
+export function Collection<TSlug extends string, TCollectionFields extends Record<string, IField<any, any, any>>, TCollectType extends RecordToObject<TCollectionFields> & {
+    createdAt: Date,
+    updatedAt: Date,
+}, TReturn extends RecordToObject<TCollectionFields>>(opts: CollectionOptions<TSlug, TCollectionFields>, customTransform: (hydrate: (v: any) => TCollectType, originalData: any) => TReturn): Collection2<TReturn, TSlug> 
+export function Collection<TSlug extends string, TCollectionFields extends Record<string, IField<any, any, any>>, TCollectType extends RecordToObject<TCollectionFields> & {
+    createdAt: Date,
+    updatedAt: Date,
+}, TReturn extends RecordToObject<TCollectionFields>>(opts: CollectionOptions<TSlug, TCollectionFields>, customTransform?: (hydrate: (v: any) => TCollectType, originalData: any) => TReturn) {
+
     const fields = recordToList(opts.fields).map(f => f.toPayloadField())
     let getPayloadPromise: Promise<Payload> | undefined = undefined;
     let payload: Payload | null = null;
 
-    const hydrate = (data: any): TCollectType => {
-        return Object.entries(opts.fields).reduce((acc, [name, field]) => {
+    const hydrate = (data: any, noRecurse: boolean = false): TCollectType | TReturn => {
+        const hydrated = Object.entries(opts.fields).reduce((acc, [name, field]) => {
             return {
                 ...acc,
                 [name]: field.hydrate(data[name]),
@@ -30,6 +38,10 @@ export const Collection = <TSlug extends string, TCollectionFields extends Recor
             updatedAt: parseISO(data.updatedAt),
             createdAt: parseISO(data.createdAt),
         }) as any
+        if (customTransform && !noRecurse) {
+            return customTransform((raw) => hydrate(raw, true) as TCollectType, data) as TReturn;
+        }
+        return hydrated as TCollectType;
     }
 
     function search(query: WhereCollection<TCollectType>, options: {limit: 1, sort?: string, page?: number} | {limit?: number, sort?: string, page?: number}): Promise<TCollectType | null>
@@ -41,7 +53,7 @@ export const Collection = <TSlug extends string, TCollectionFields extends Recor
                     throw new Error("Payload is not instantiated properly here!")
                 }
             }
-            const data = await payload.find({
+            const data = await payload.find({   
                 collection: opts.name as any,
                 limit: options?.limit ?? 100,
                 sort: options?.sort ??  "createdAt",
@@ -56,43 +68,81 @@ export const Collection = <TSlug extends string, TCollectionFields extends Recor
                 }
                 return hydrate(data.docs[0]);
             }
-            return data.docs.map(hydrate);
+            return data.docs.map(doc => hydrate(doc));
     }
 
-    return {
-        _returnType: {} as any as TCollectType & { __type: TSlug },
-        slug: opts.name,
-        toPayloadCollection(): CollectionConfig {
-            return {
-                ...opts,
-                slug: opts.name,
-                fields,
-            }
-        },
-        search,
-        hydrate, 
-        async get(id): Promise<TCollectType | null> {
-            if (payload === null) {
-                payload = await getPayloadPromise ?? null;
-                if (payload === null) {
-                    throw new Error("Payload is not instantiated properly here!")
+    if (customTransform) {
+        return {
+            _returnType: {} as any as TReturn & { __type: TSlug },
+            slug: opts.name,
+            toPayloadCollection(): CollectionConfig {
+                return {
+                    ...opts,
+                    slug: opts.name,
+                    fields,
                 }
+            },
+            search: search as any,
+            hydrate: hydrate as any, 
+            async get(id): Promise<TReturn | null> {
+                if (payload === null) {
+                    payload = await getPayloadPromise ?? null;
+                    if (payload === null) {
+                        throw new Error("Payload is not instantiated properly here!")
+                    }
+                }
+                const data = await payload.findByID({
+                    collection: opts.name as any,
+                    id,
+                    depth: 2,
+                    showHiddenFields: true,
+                });
+                if (data === undefined) {
+                    return null;
+                }
+                return hydrate(data) as TReturn;
+            },
+            async bindPayload(prom: Promise<Payload>) {
+                getPayloadPromise = prom;
             }
-            const data = await payload.findByID({
-                collection: opts.name as any,
-                id,
-                depth: 2,
-                showHiddenFields: true,
-            });
-            if (data === undefined) {
-                return null;
+    } satisfies Collection2<TReturn, TSlug>
+    } else {
+        return {
+
+            _returnType: {} as any as TCollectType & { __type: TSlug },
+            slug: opts.name,
+            toPayloadCollection(): CollectionConfig {
+                return {
+                    ...opts,
+                    slug: opts.name,
+                    fields,
+                }
+            },
+            search: search as any,
+            hydrate: hydrate as any, 
+            async get(id): Promise<TCollectType | null> {
+                if (payload === null) {
+                    payload = await getPayloadPromise ?? null;
+                    if (payload === null) {
+                        throw new Error("Payload is not instantiated properly here!")
+                    }
+                }
+                const data = await payload.findByID({
+                    collection: opts.name as any,
+                    id,
+                    depth: 2,
+                    showHiddenFields: true,
+                });
+                if (data === undefined) {
+                    return null;
+                }
+                return hydrate(data) as TCollectType;
+            },
+            async bindPayload(prom: Promise<Payload>) {
+                getPayloadPromise = prom;
             }
-            return hydrate(data)
-        },
-        async bindPayload(prom: Promise<Payload>) {
-            getPayloadPromise = prom;
-        }
-    } satisfies Collection2<TCollectType, TSlug>
+        } satisfies Collection2<TCollectType, TSlug>
+    }
 } 
 
 type extractSlug<T extends Collection2<any, any>> = T extends Collection2<any, infer Slug> ? Slug : never

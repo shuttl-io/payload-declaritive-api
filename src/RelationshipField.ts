@@ -28,10 +28,18 @@ class RelationshipField<TSlug extends string, const TObject extends Array<Collec
     }
 
     public hydrateFromPayload(value: PayloadRelation<TSlug>): TObject[number]["_returnType"] | undefined {
-        const col = this.collectionRecord[value.relationTo];
-        return {
-            __type: value.relationTo,
-            ...col.hydrate(value.value),
+        try {
+            if (!value) {
+                return null;
+            }
+            const col = this.collectionRecord[value.relationTo];
+            return {
+                __type: value.relationTo,
+                ...col.hydrate(value.value),
+            }
+        } catch (e) {
+            console.log(value);
+            throw e;
         }
     }
 }
